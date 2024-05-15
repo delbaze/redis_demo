@@ -1,5 +1,5 @@
-import { ILike } from "typeorm";
 import Ad from "../entity/ad";
+import AdService from "../services/Ad.service";
 import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { redisClient } from "../index";
 
@@ -11,9 +11,7 @@ class AdResolver {
     if (Object.keys(cacheResult).length > 0) {
       return JSON.parse(cacheResult.data);
     } else {
-      const dbResult = await Ad.find({
-        where: { description: ILike(`%${keyword}%`) },
-      });
+      const dbResult = await new AdService().findByDescription(keyword);
       redisClient.hSet(keyword, {
         data: JSON.stringify(dbResult),
       });
@@ -27,7 +25,7 @@ class AdResolver {
     @Arg("title") title: string,
     @Arg("description") description: string
   ) {
-    return await Ad.save({ title, description });
+    return await new AdService().createAd({ title, description });
   }
 }
 export default AdResolver;

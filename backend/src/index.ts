@@ -1,10 +1,10 @@
-import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
-import { buildSchema } from "type-graphql";
-import dataSource from "./config";
 import AdResolver from "./resolvers/ad";
-import Ad from "./entity/ad";
+import dataSource from "./lib/dataSource";
+import AdService from "../src/services/Ad.service";
+import { ApolloServer } from "@apollo/server";
+import { buildSchema } from "type-graphql";
 import { createClient } from "redis";
+import { startStandaloneServer } from "@apollo/server/standalone";
 
 export const redisClient = createClient({ url: "redis://redis" });
 
@@ -19,13 +19,13 @@ const start = async () => {
   await redisClient.connect();
   await dataSource.initialize();
 
-  const adsCount = await Ad.count();
+  const adsCount = await new AdService().numberOfAds();
 
   console.log("adsCount", adsCount);
 
   if (adsCount === 0) {
     for (let i = 0; i < 100_000; i++) {
-      await Ad.save({
+      await new AdService().createAd({
         title: "Lorem Ipsum",
         description: `
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras condimentum, ipsum ut sollicitudin feugiat, felis velit feugiat magna, non feugiat lacus libero quis purus. Cras pellentesque purus porta augue accumsan lobortis. Suspendisse a sodales felis, a laoreet justo. Curabitur imperdiet nibh non mollis condimentum. Duis convallis tellus vel bibendum finibus. Sed pharetra erat sed purus bibendum, id condimentum turpis mollis. Praesent commodo placerat turpis vitae fermentum. Duis eleifend commodo lorem, ut facilisis tortor. Nullam est tortor, blandit ultricies tincidunt ut, ullamcorper in urna. Maecenas et magna interdum, volutpat mi in, malesuada turpis. Sed placerat eros arcu, eu porttitor neque scelerisque sed. Aliquam scelerisque risus massa, et ultricies ligula rhoncus ac. Aliquam aliquam turpis ac lobortis volutpat. Proin dapibus massa dui, quis imperdiet dui pulvinar a. Vestibulum molestie diam urna, ac auctor est lobortis in.
@@ -37,7 +37,7 @@ const start = async () => {
       });
       console.log("inserting data", i);
     }
-    await Ad.save({ title: "phone", description: "iphone" });
+    await new AdService().createAd({ title: "phone", description: "iphone" });
   }
 
   const schema = await buildSchema({
@@ -47,7 +47,7 @@ const start = async () => {
   const server = new ApolloServer({ schema });
 
   const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
+    listen: { port: 4005 },
   });
 
   console.log(`🚀  Server ready at: ${url}`);

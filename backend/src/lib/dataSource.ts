@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm";
-import Ad from "./entity/ad";
+import Ad from "../entity/ad";
 
 const dataSource = new DataSource({
   type: "postgres",

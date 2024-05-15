@@ -7,7 +7,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - 4005:4000
+      - 4005:4005
   db:
     image: postgres
     healthcheck:
