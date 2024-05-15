@@ -8,11 +8,7 @@ class AdResolver {
   @Query(() => [Ad])
   async getAllAdsByKeyword(@Arg("keyword") keyword: string) {
     const cacheResult = await redisClient.hGetAll(keyword);
-    if (
-      cacheResult !== null &&
-      Number.parseInt(cacheResult.timestamp) >= Date.now() - 1000 * 10 // 10 seconds cache
-    ) {
-      console.log("from cache");
+    if (Object.keys(cacheResult).length > 0) {
       return JSON.parse(cacheResult.data);
     } else {
       const dbResult = await Ad.find({
@@ -20,8 +16,8 @@ class AdResolver {
       });
       redisClient.hSet(keyword, {
         data: JSON.stringify(dbResult),
-        timestamp: Date.now(),
       });
+      redisClient.expire(keyword, 10); // expire après 10 secondes
       return dbResult;
     }
   }
