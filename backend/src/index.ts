@@ -1,4 +1,4 @@
-import AdResolver from "./resolvers/ad";
+import AdResolver from "./resolvers/Ad.resolver";
 import dataSource from "./lib/dataSource";
 import AdService from "../src/services/Ad.service";
 import { ApolloServer } from "@apollo/server";
